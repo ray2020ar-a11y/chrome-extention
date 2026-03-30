@@ -1,55 +1,65 @@
-let myLeads = [
-  "www.ray2.com",
-  "www.ray1.com",
-  "www.ray3.com",
-  "www.ray4.com",
-  "www.ray5.com",
-];
+let myLeads = [];
 const inputBtn = document.getElementById("input-btn");
 const inputEl = document.getElementById("input-el");
 const ulEl = document.getElementById("leads-list");
-const container = document.getElementById("contaner");
+ulEl.style.display = "block";
+const saveBtn = document.getElementById("save-btn");
+
+const localStorageFromStorage = JSON.parse(localStorage.getItem("myLeads"));
+myLeads = [];
+render(myLeads);
+console.log(myLeads);
+
+if (localStorageFromStorage) {
+  myLeads = localStorageFromStorage;
+  render(myLeads);
+}
+
+function render(leads) {
+  let lestItem = "";
+  for (let i = 0; i < leads.length; i++) {
+    let url = leads[i];
+    if (!url.startsWith("http")) {
+      url = "https://" + url;
+    }
+    // temple string writing stayle used here below
+    lestItem += `<li>
+                      <a href='${url}' target='_blank'>
+                      ${leads[i]}
+                      </a>
+                </li>`;
+  }
+  ulEl.innerHTML = lestItem;
+}
 
 inputBtn.addEventListener("click", function () {
   myLeads.push(inputEl.value);
-  //   console.log(myLeads);
+  inputEl.value = "";
+  localStorage.setItem("myLeads", JSON.stringify(myLeads));
+  render(myLeads);
+
+  console.log(
+    myLeads,
+    "this is the array after pushing the value in the local storage",
+  );
 });
 
-inputEl.addEventListener("click", function () {
-  //   console.log(inputEl.value);
+const deleteBtn = document.createElement("button");
+deleteBtn.textContent = "Delete All";
+deleteBtn.style.backgroundColor = "red";
+deleteBtn.style.color = "white";
+const contaner = document.getElementById("contaner");
+contaner.append(deleteBtn);
+deleteBtn.addEventListener("dblclick", function () {
+  localStorage.clear();
+  myLeads = [];
+  render(myLeads);
 });
 
-function renderLeads() {
-  ulEl.innerHTML = "";
-  for (let i = 0; i < myLeads.length; i++) {
-    // console.log(myLeads[i]);
-    ulEl.innerHTML += "<li>" + myLeads[i] + "</li>";
-  }
-}
-renderLeads();
-let newmyLeads = [...myLeads];
-
-container.innerHTML = "<button id='input-btn'>SAVE INPUT</button>";
-
-//delete button
-const newBtn = document.createElement("button");
-newBtn.id = "new-btn";
-newBtn.textContent = "delete";
-container.append(newBtn);
-
-newBtn.addEventListener("click", function () {
-  myLeads.pop();
-});
-
-//create new container for displaying updated leads
-
-const newContainer = document.createElement("div");
-newContainer.id = "new-container";
-container.append(newContainer);
-newContainer.innerHTML = "myLeads: " + myLeads;
-
-newBtn.addEventListener("click", function () {
-  //   console.log("new container");
-
-  newContainer.innerHTML = "myLeads: " + myLeads;
+saveBtn.addEventListener("click", function () {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    myLeads.push(tabs[0].url);
+    localStorage.setItem("myLeads", JSON.stringify(myLeads));
+    render(myLeads);
+  });
 });
